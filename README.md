@@ -13,6 +13,10 @@ hm-login-shell-helper; `nix flake update dotfiles` moves them together.
   merge with dotfiles'; `lib.mkForce` replaces; `disabledModules` drops a
   dotfiles module.
 - `hosts/<host>.nix`: changes for one host, on top of `overrides.nix`.
+- `home-files/`: files linked into the home directory, laid out like dotfiles'
+  `home-files/` (`home-files/.config/foo/bar.toml` becomes
+  `~/.config/foo/bar.toml`). A file at the same path as one of dotfiles'
+  replaces it. New files must be `git add`-ed before Nix sees them.
 
 ## Switching
 

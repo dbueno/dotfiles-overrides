@@ -37,6 +37,8 @@ in
   # Remove a dotfiles module entirely:
   # disabledModules = [ "${dotfiles}/nix/home/gui.nix" ];
 
-  # Replace a file dotfiles links from home-files/:
-  # home.file.".config/git/config".source = lib.mkForce ./git-config;
+  # Link files under ./home-files into $HOME at the same relative path, as
+  # dotfiles does; one at the same path as a dotfiles file replaces it. Git
+  # does not track an empty directory, so this skips one that isn't there.
+  dotfiles.homeFileDirs = lib.optional (builtins.pathExists ./home-files) ./home-files;
 }
