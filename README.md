@@ -7,15 +7,32 @@ on top. Homes are built with dotfiles' `lib.mkHomeConfig` and
 hm-login-shell-helper; `nix flake update dotfiles` moves them together.
 
 - `flake.nix`: the `hosts` set gives each machine's username, home directory,
-  system and stateVersion; outputs are named `<username>@<host>`.
-- `overrides.nix`: additions and overrides. Plain definitions merge with
-  dotfiles'; `lib.mkForce` replaces; `disabledModules` drops a dotfiles module.
+  system, stateVersion and host modules; outputs are named `<username>@<host>`.
+  Name each host after its short hostname (`uname -n` up to the first dot).
+- `overrides.nix`: additions and overrides for every host. Plain definitions
+  merge with dotfiles'; `lib.mkForce` replaces; `disabledModules` drops a
+  dotfiles module.
+- `hosts/<host>.nix`: changes for one host, on top of `overrides.nix`.
+
+## Switching
+
+```sh
+nix run .#switch                 # the home for this machine's hostname
+nix run .#switch -- linux-box    # a named host
+nix run .#switch -- laptop -n    # extra arguments go to home-manager
+```
+
+With no host matching this machine, it lists the hosts configured for this
+system and asks which to switch to.
 
 To try uncommitted changes in a local dotfiles checkout:
 
 ```sh
-home-manager build --flake 'path:.#dbueno@example' --override-input dotfiles path:$HOME/dotfiles
+home-manager build --flake 'path:.#dbueno@laptop' --override-input dotfiles path:$HOME/dotfiles
 ```
 
-Build with `home-manager build --flake 'path:.#<username>@<host>'`; `switch`
-activates it.
+(`nix run .#switch` ignores `--override-input`: it switches to the flake as
+locked.)
+
+`home-manager build --flake 'path:.#<username>@<host>'` builds a home without
+activating it.

@@ -32,7 +32,7 @@ in
   home.packages = [ pkgs.hello ];
 
   # Override: replace a value dotfiles sets.
-  programs.matplotlib.config.backend = lib.mkForce "Agg";
+  # programs.matplotlib.config.backend = lib.mkForce "Agg";
 
   # Remove a dotfiles module entirely:
   # disabledModules = [ "${dotfiles}/nix/home/gui.nix" ];
