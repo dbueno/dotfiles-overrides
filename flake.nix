@@ -4,7 +4,7 @@
   inputs = {
     dotfiles.url = "github:dbueno/dotfiles";
     # Homes get dotfiles' nixpkgs, home-manager and hm-login-shell-helper from
-    # its mkHomeConfig; this is for the formatter.
+    # its mkHomeConfig; this is for the formatter and dev shell.
     nixpkgs.follows = "dotfiles/nixpkgs";
   };
 
@@ -12,6 +12,11 @@
     { nixpkgs, dotfiles, ... }:
     let
       lib = nixpkgs.lib;
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
 
       # homeModules.default is dotfiles' module list. An override module can
       # drop one with `disabledModules = [ "${dotfiles}/nix/home/gui.nix" ];`.
@@ -43,8 +48,15 @@
         value = mkHome args;
       }) hosts;
 
-      formatter = lib.genAttrs [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" ] (
-        system: nixpkgs.legacyPackages.${system}.nixfmt-tree
-      );
+      formatter = lib.genAttrs systems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+
+      devShells = lib.genAttrs systems (system: {
+        default = nixpkgs.legacyPackages.${system}.mkShell {
+          packages = with nixpkgs.legacyPackages.${system}; [
+            nil
+            nixd
+          ];
+        };
+      });
     };
 }
