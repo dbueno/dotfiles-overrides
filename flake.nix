@@ -3,8 +3,8 @@
 
   inputs = {
     dotfiles.url = "github:dbueno/dotfiles";
-    # Homes get dotfiles' nixpkgs, home-manager and hm-login-shell-helper from
-    # its mkHomeConfig; this is for the formatter and dev shell.
+    # Homes get dotfiles' nixpkgs and home-manager from its mkHomeConfig;
+    # this is for the formatter and dev shell.
     nixpkgs.follows = "dotfiles/nixpkgs";
   };
 
@@ -14,7 +14,7 @@
       nixpkgs,
       dotfiles,
       ...
-    }:
+    }@inputs:
     let
       lib = nixpkgs.lib;
       systems = [
@@ -23,37 +23,24 @@
         "x86_64-linux"
       ];
 
-      # One entry per machine, keyed by its short hostname (`uname -n` up to
-      # the first dot) or "sha256-<hex SHA-256 of that name, without a newline>".
-      # The output is named "<username>@<host>". Every host gets dotfiles'
-      # module list and overrides.nix, then its own modules.
-      hosts = {
-        laptop = {
-          system = "aarch64-darwin";
-          username = "dbueno";
-          homeDirectory = "/Users/dbueno";
-          stateVersion = "24.11";
-          modules = [ ./hosts/laptop.nix ];
-        };
-        linux-box = {
-          system = "aarch64-linux";
-          username = "dbueno";
-          homeDirectory = "/home/dbueno";
-          stateVersion = "24.11";
-          modules = [ ./hosts/linux-box.nix ];
-        };
-      };
+      hostConfig = import ./hosts.nix;
     in
     {
+      # Hosts are in hosts.nix.
       homeConfigurations = dotfiles.lib.mkHomeConfigurations {
-        inherit hosts;
+        inherit (hostConfig) defaults hosts;
         modules = [
           dotfiles.homeModules.default
+          ./modules/network.nix
           ./overrides.nix
         ];
+        # Modules take `inputs` to use this flake's inputs, e.g.
+        # `nix.registry.otherpkgs.flake = inputs.otherpkgs;`.
+        extraSpecialArgs = { inherit inputs; };
       };
 
-      # `nix run .#switch` switches to the home named after this machine.
+      # `nix run .#switch` switches to the home named after this machine;
+      # `nix run .#repl` opens `nix repl` on this flake.
       apps = dotfiles.lib.mkSwitchApps self;
 
       formatter = lib.genAttrs systems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);

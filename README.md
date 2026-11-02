@@ -3,26 +3,51 @@
 A Home Manager config that takes everything from
 [dbueno/dotfiles](https://github.com/dbueno/dotfiles) and layers local changes
 on top. Homes are built with dotfiles' `lib.mkHomeConfigurations` and
-`homeModules.default`; the switch app comes from `lib.mkSwitchApps`. Homes use
-dotfiles' nixpkgs, overlay and hm-login-shell-helper;
-`nix flake update dotfiles` updates these dependencies and shared helpers together.
+`homeModules.default`; the `switch` and `repl` apps come from
+`lib.mkSwitchApps`. Homes use dotfiles' nixpkgs and overlay;
+`nix flake update dotfiles` updates these dependencies and shared helpers
+together.
 
-- `flake.nix`: the `hosts` set gives each machine's username, home directory,
-  system, stateVersion and host modules; outputs are named `<username>@<host>`.
-  Name each host after its short hostname (`uname -n` up to the first dot),
-  or use `sha256-<digest>` as described below. Shared modules run before each
-  host's modules; dotfiles also supplies the `dotfiles` module argument used
-  by overrides and host modules.
+A private copy changes only these, so template updates merge cleanly:
+
+- `hosts.nix`: one entry per machine with its system and host modules, plus
+  `defaults` (username, stateVersion) for any host that doesn't set them.
+  `homeDirectory` defaults to `/Users/<username>` on Darwin and
+  `/home/<username>` otherwise. Outputs are named `<username>@<host>`. Name
+  each host after its short hostname (`uname -n` up to the first dot), or use
+  `sha256-<digest>` as described below.
 - `overrides.nix`: additions and overrides for every host. Plain definitions
-  merge with dotfiles'; `lib.mkForce` replaces; `disabledModules` drops a
-  dotfiles module.
+  merge with dotfiles'; `lib.mkForce` replaces. Dotfiles' README lists its
+  options (`dotfiles.loginShell.enable`, `dotfiles.gui.enable`,
+  `dotfiles.cdpath`, `dotfiles.python.dontCheckPackages`, ...) and the local
+  files its configs read.
 - `hosts/<host>.nix`: changes for one host, on top of `overrides.nix`.
 - `home-files/`: files linked into the home directory, laid out like dotfiles'
   `home-files/` (`home-files/.config/foo/bar.toml` becomes
   `~/.config/foo/bar.toml`). `overrides.nix` adds this directory, when present,
-  to dotfiles' `dotfiles.homeFileDirs` option. Dotfiles handles the links; a
-  file at the same path as one of dotfiles' replaces it. New files must be
-  `git add`-ed before Nix sees them.
+  to dotfiles' `dotfiles.homeFileDirs` option. A file at the same path as one
+  of dotfiles' replaces it. New files must be `git add`-ed before Nix sees
+  them. Prefer dotfiles' local files to replacing its configs:
+  `home-files/.ssh/config.d/<name>` for ssh hosts (in ssh config syntax, not
+  `programs.ssh`), `home-files/.config/git/config.local`,
+  `home-files/.zshrc_local`, `home-files/.config/tmux/local.conf`. For shell
+  code that needs store paths, use `programs.zsh.initContent`, which merges
+  with dotfiles'.
+- `flake.nix` inputs, only to add one. Modules get them as the `inputs`
+  argument, e.g. `nix.registry.otherpkgs.flake = inputs.otherpkgs;`.
+
+Other files:
+
+- `modules/network.nix`: `overrides.network.proxy`, `.noProxy` and `.caBundle`
+  set the proxy and CA-bundle variables for login shells. Set them in
+  `overrides.nix`, or in `hosts/<host>.nix` for one host. `caBundle` must be a
+  full bundle (public CAs plus any local ones), since most of the variables
+  replace the trust store.
+- `bootstrap/`: one-off scripts run by hand before Home Manager works on a
+  machine. Not part of the build.
+
+Keep real proxy hosts, internal domains, CA paths, hostnames, usernames and
+internal URLs out of the public template; only a private copy should have them.
 
 ## Switching
 
@@ -58,4 +83,4 @@ home-manager build --flake 'path:.#dbueno@laptop' --override-input dotfiles path
 locked.)
 
 `home-manager build --flake 'path:.#<username>@<host>'` builds a home without
-activating it.
+activating it. `nix run .#repl` opens `nix repl` on this flake.
