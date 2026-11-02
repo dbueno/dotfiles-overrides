@@ -59,11 +59,11 @@
         "tinted-vim": "tinted-vim"
       },
       "locked": {
-        "lastModified": 1793644770,
-        "narHash": "sha256-aQEsHxHEOquYdjGrea5/Jk3kbxNPBty88GvBrYlDGVA=",
+        "lastModified": 1793647246,
+        "narHash": "sha256-t1MKekxAJRzllvvRQkrBKgMjIHfY5ScvdLfDLc5tUDY=",
         "owner": "dbueno",
         "repo": "dotfiles",
-        "rev": "bb0034cef079b82a368b6939a88a77897331d9b1",
+        "rev": "bd39d44894014ada0d0cd60ba84679123ee077a9",
         "type": "github"
       },
       "original": {

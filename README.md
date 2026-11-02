@@ -3,7 +3,7 @@
 A Home Manager config that takes everything from
 [dbueno/dotfiles](https://github.com/dbueno/dotfiles) and layers local changes
 on top. Homes are built with dotfiles' `lib.mkHomeConfigurations` and
-`homeModules.default`; the `switch` and `repl` apps come from
+`homeModules.default`; the `switch`, `diff` and `repl` apps come from
 `lib.mkSwitchApps`. Homes use dotfiles' nixpkgs and overlay;
 `nix flake update dotfiles` updates these dependencies and shared helpers
 together.
@@ -52,6 +52,7 @@ internal URLs out of the public template; only a private copy should have them.
 ## Switching
 
 ```sh
+nix run .#diff                   # what switching would change; changes nothing
 nix run .#switch                 # the home for this machine's hostname
 nix run .#switch -- linux-box    # a named host
 nix run .#switch -- laptop -n    # extra arguments go to home-manager
